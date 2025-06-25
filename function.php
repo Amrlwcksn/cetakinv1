@@ -1,11 +1,9 @@
 <?php
 session_start();
-date_default_timezone_set('Asia/Jakarta');
-
-
 $conn = mysqli_connect("localhost", "root", "200201", "cetakin");
 
-// TODO login
+
+// TODO (auth no hashing)
 if (isset($_POST ['login'])){
     $username = $_POST ['username'];
     $password = $_POST ['password'];
@@ -28,77 +26,104 @@ if (isset($_POST ['login'])){
 
     }
 }
-// TODO Customer
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["submit"])) {
-    
-    $nama = $_POST["nama"] ?? '';
-    $ukuran = $_POST["ukuran"] ?? '';
-    $jumlah = $_POST["jumlah"] ?? '';
-    $deskripsi = $_POST["deskripsi"] ?? '';
-    $harga = $_POST["harga"] ?? '';
 
+// TODO (input pesanan)
+if (isset($_POST["submit"])) {
+    $nama = $_POST["nama"];
+    $id_produk = $_POST["produk"];
+    $jumlah = intval($_POST["jumlah"]);
+    $deskripsi = $_POST["deskripsi"];
+    $file = $_FILES["file"];
 
-    if ($nama && $ukuran && $jumlah && $deskripsi) {
-        $insert = mysqli_query($conn, "INSERT INTO customer (nama, ukuran, jumlah, deskripsi,) VALUES ('$nama', '$ukuran', $jumlah, '$deskripsi')");
+    $waktu_pesanan_masuk = date('Y-m-d H:i:s');
+    $status = 'pending';
+    $pesanan_selesai = null;
 
-        if ($insert) {
-            $nomor_pesanan = mysqli_insert_id($conn);
+    // Ambil data produk
+    $query = "SELECT * FROM produk WHERE id_produk = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $id_produk);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $produk = $result->fetch_assoc();
 
-            if (isset($_FILES['file']) && $_FILES['file']['error'] === 0) {
-                $fileName = $_FILES['file']['name'];
-                $fileTmp = $_FILES['file']['tmp_name'];
+    if (!$produk) {
+        echo "<script>alert('Produk tidak ditemukan!'); window.location.href = 'pesan.php';</script>";
+        exit;
+    }
 
-                $uploadDir = 'uploads/' . $nomor_pesanan . '/';
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0777, true);
-                }
+    $ukuran = $produk["nama_produk"]; // Gunakan nama produk sebagai ukuran
+    $harga_satuan = $produk["harga"];
+    $harga_total = $harga_satuan * $jumlah;
 
-                $uploadPath = $uploadDir . basename($fileName);
-                if (move_uploaded_file($fileTmp, $uploadPath)) {
-                    $filePath = $nomor_pesanan . '/' . $fileName;
-                    $update = mysqli_query($conn, "UPDATE customer SET file='$filePath' WHERE nomor_pesanan = $nomor_pesanan");
+    // Simpan ke DB
+    $stmt = $conn->prepare("INSERT INTO customer 
+        (waktu_pesanan_masuk, nama, ukuran, jumlah, deskripsi, status, harga_total, pesanan_selesai) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssissss", 
+        $waktu_pesanan_masuk, $nama, $ukuran, $jumlah, $deskripsi, $status, $harga_total, $pesanan_selesai);
+    $stmt->execute();
 
-                    if ($update) {
-                        echo "<script>alert('File berhasil dikirim dan disimpan!'); window.location.href = 'nomor_pesanan.php';</script>";
-                    } else {
-                        echo "<script>alert('Gagal update data file di database!'); window.location.href = 'index.php';</script>";
-                    }
-                } else {
-                    echo "<script>alert('Gagal upload file!'); window.location.href = 'index.php';</script>";
-                }
-            } else {
-                echo "<script>alert('File belum dipilih atau error saat upload!'); window.location.href = 'index.php';</script>";
-            }
+    $nomor_pesanan = $stmt->insert_id;
+
+    // Upload file
+    if ($file["error"] === 0) {
+        $fileName = basename($file["name"]);
+        $fileTmp = $file["tmp_name"];
+        $uploadDir = "uploads/$nomor_pesanan/";
+
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+
+        $uploadPath = $uploadDir . $fileName;
+
+        if (move_uploaded_file($fileTmp, $uploadPath)) {
+            $relativePath = "$nomor_pesanan/" . $fileName;
+
+            $update = $conn->prepare("UPDATE customer SET file = ? WHERE nomor_pesanan = ?");
+            $update->bind_param("si", $relativePath, $nomor_pesanan);
+            $update->execute();
+
+            echo "<script>alert('Pesanan berhasil disimpan!'); window.location.href = 'nomor_pesanan.php';</script>";
+            exit;
         } else {
-            echo "<script>alert('Gagal simpan data!'); window.location.href = 'index.php';</script>";
+            echo "<script>alert('Gagal upload file!'); window.location.href = 'customer.php';</script>";
+            exit;
         }
     } else {
-        echo "<script>alert('Semua field harus diisi!'); window.location.href = 'index.php';</script>";
+        echo "<script>alert('File belum dipilih atau terjadi error saat upload!'); window.location.href = 'customer.php';</script>";
+        exit;
     }
 }
 
-// TODO admin
-$result = mysqli_query($conn, "SELECT * FROM customer ORDER BY nomor_pesanan ASC");
-
-if (isset($_POST['id']) && isset($_POST['status'])) {
-    $id = intval($_POST['id']);
-    $status = $_POST['status'];
-
-    $query = "UPDATE customer SET status = '$status' WHERE nomor_pesanan = $id";
-    mysqli_query($conn, $query);
-
-    header("Location: admin.php");
-}
 
 
-// Delete
-if (isset($_POST['delete_table'])) {
-    $query = "DELETE FROM customer";
-    mysqli_query($conn, $query);
-    mysqli_query($conn, "ALTER TABLE customer AUTO_INCREMENT = 1");
-    header("Location: admin.php");
-    exit;
+// TODO (update pesanan)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
+  $id = intval($_POST['id']);
+  $status = $_POST['status'];
+
+  if ($status === 'selesai') {
+    $selesai = date('Y-m-d H:i:s');
+    $stmt = $conn->prepare("UPDATE customer SET status = ?, pesanan_selesai = ? WHERE nomor_pesanan = ?");
+    $stmt->bind_param("ssi", $status, $selesai, $id);
+  } else {
+    $stmt = $conn->prepare("UPDATE customer SET status = ? WHERE nomor_pesanan = ?");
+    $stmt->bind_param("si", $status, $id);
   }
 
+  $stmt->execute();
+  header("Location: admin.php");
+  exit();
+}
+
+// TODO (Hapus semua data)
+if (isset($_POST['delete_all'])) {
+  mysqli_query($conn, "DELETE FROM customer");
+  mysqli_query($conn, "ALTER TABLE customer AUTO_INCREMENT = 1");
+  header("Location: admin.php");
+  exit();
+}
 
 ?>
