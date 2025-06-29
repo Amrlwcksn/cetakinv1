@@ -3,27 +3,24 @@ session_start();
 $conn = mysqli_connect("localhost", "root", "200201", "cetakin");
 
 
-// TODO (auth no hashing)
-if (isset($_POST ['login'])){
-    $username = $_POST ['username'];
-    $password = $_POST ['password'];
+// TODO (Register with haashing)
+if($_SERVER['REQUEST_METHOD'] === "POST" && isset($_POST['register'])) {
+    $username = trim($_POST['username']);
+    $password = $_POST['password'];
 
-    $stmt = $conn->prepare("SELECT * FROM user WHERE username = ? AND password = ?");
-    $stmt->bind_param("ss", $username, $password);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if($result->num_rows === 1){
-        $_SESSION['username'] = $username;
-        header("Location: admin.php");
+    $cek = mysqli_query($conn, "SELECT * FROM user WHERE username='$username'");
+    if(mysqli_num_rows($cek) > 1) {
+        echo "username sudah digunakan.";
         exit();
+    }
+
+    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+    $sql = "INSERT INTO user (username, password) VALUES ('$username', '$hashed_password')";
+    if (mysqli_query($conn, $sql)){
+        echo "Registrasi berhasil!";
+        header("Location: index.php");
     }else{
-        echo "<script>
-        alert('Username atau Password salah');
-        window.location.href = 'index.php';
-        </script>";
-
-
+        echo "Error" . mysqli_error($conn);
     }
 }
 

@@ -2,14 +2,12 @@
 require "function.php";
 require "auth_check.php";
 
-// 🔄 Hapus semua jika tombol diklik
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_all'])) {
   mysqli_query($conn, "DELETE FROM customer");
   header("Location: admin.php");
   exit;
 }
 
-// 🔄 Update status jika tombol update diklik
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
   $id = intval($_POST['id']);
   $status = $_POST['status'];
@@ -28,45 +26,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
   exit;
 }
 
-// Ambil semua data customer
 $result = mysqli_query($conn, "SELECT * FROM customer ORDER BY waktu_pesanan_masuk ASC");
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard Admin - Cetakin</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+  </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gradient-to-br from-blue-100 via-white to-green-100 min-h-screen text-gray-800">
 
-  <!-- Navbar -->
-  <header class="bg-blue-700 text-white shadow fixed top-0 inset-x-0 z-10">
+  <header class="bg-blue-700 text-white shadow-md fixed top-0 inset-x-0 z-10">
     <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
       <h1 class="text-xl font-bold tracking-wide">Cetakin</h1>
-
-      <!-- Hamburger Menu -->
       <div class="relative" x-data="{ menuOpen: false }" x-cloak>
         <button @click="menuOpen = !menuOpen" class="focus:outline-none">
-          <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
-            stroke-linecap="round" stroke-linejoin="round">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
             <path x-show="!menuOpen" d="M4 6h16M4 12h16M4 18h16" />
             <path x-show="menuOpen" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-
-        <!-- Dropdown -->
         <div x-show="menuOpen" @click.outside="menuOpen = false"
           class="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded-md shadow-md overflow-hidden z-30 transition"
           x-transition>
           <a href="export_pdf.php" class="block px-4 py-2 hover:bg-blue-50">🧾 Export to PDF</a>
           <form method="POST" action="admin.php" onsubmit="return confirm('Yakin ingin menghapus semua pesanan?');">
-            <button type="submit" name="delete_all" class="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600">
-              ❌ Hapus Semua
-            </button>
+            <button type="submit" name="delete_all" class="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600">❌ Hapus Semua</button>
           </form>
           <a href="logout.php" class="block px-4 py-2 hover:bg-blue-50">🚪 Logout</a>
         </div>
@@ -74,12 +67,10 @@ $result = mysqli_query($conn, "SELECT * FROM customer ORDER BY waktu_pesanan_mas
     </div>
   </header>
 
-  <!-- Main -->
   <main class="pt-[96px] px-6">
     <div class="max-w-6xl mx-auto">
       <h2 class="text-2xl font-bold text-blue-700 mb-6">📋 Dashboard Admin</h2>
-
-      <div class="overflow-x-auto bg-white shadow rounded-lg border">
+      <div class="overflow-x-auto bg-white shadow rounded-lg border border-gray-200">
         <table class="min-w-full divide-y divide-gray-200 text-sm">
           <thead class="bg-blue-50 text-blue-800">
             <tr>
@@ -108,33 +99,33 @@ $result = mysqli_query($conn, "SELECT * FROM customer ORDER BY waktu_pesanan_mas
                 };
               ?>
               <tr class="hover:bg-gray-50">
-                <td class="px-5 py-3"><?= $row['nomor_pesanan'] ?></td>
-                <td class="px-5 py-3"><?= $row['waktu_pesanan_masuk'] ?></td>
-                <td class="px-5 py-3"><?= htmlspecialchars($row['nama']) ?></td>
+                <td class="px-5 py-3 font-semibold text-gray-700">#<?= $row['nomor_pesanan'] ?></td>
+                <td class="px-5 py-3 text-gray-600"><?= $row['waktu_pesanan_masuk'] ?></td>
+                <td class="px-5 py-3 text-gray-800"><?= htmlspecialchars($row['nama']) ?></td>
                 <td class="px-5 py-3"><?= htmlspecialchars($row['ukuran']) ?></td>
                 <td class="px-5 py-3"><?= $row['jumlah'] ?></td>
                 <td class="px-5 py-3"><?= htmlspecialchars($row['deskripsi']) ?></td>
                 <td class="px-5 py-3">
                   <?php if (!empty($row['file'])): ?>
-                    <a href="uploads/<?= $row['file'] ?>" target="_blank" class="text-blue-600 underline">Lihat File</a>
+                    <a href="uploads/<?= $row['file'] ?>" target="_blank" class="text-blue-600 underline hover:text-blue-800 transition">Lihat File</a>
                   <?php else: ?>
                     <span class="text-gray-400 italic">Belum ada</span>
                   <?php endif; ?>
                 </td>
-                <td class="px-5 py-3">Rp<?= number_format($row['harga_total'], 0, ',', '.') ?></td>
+                <td class="px-5 py-3 text-green-700">Rp<?= number_format($row['harga_total'], 0, ',', '.') ?></td>
                 <td class="px-5 py-3">
                   <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold <?= $badgeColor ?>">
                     <?= htmlspecialchars(ucfirst($status)) ?>
                   </span>
                 </td>
-                <td class="px-5 py-3"><?= $row['pesanan_selesai'] ?? '-' ?></td>
+                <td class="px-5 py-3 text-gray-600"><?= $row['pesanan_selesai'] ?? '-' ?></td>
                 <td class="px-5 py-3">
                   <form method="POST" action="admin.php" class="flex flex-col gap-1">
                     <input type="hidden" name="id" value="<?= $row['nomor_pesanan'] ?>">
-                    <button type="submit" name="update_status" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs">
+                    <button type="submit" name="update_status" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition duration-150">
                       Update
                     </button>
-                    <select name="status" class="mt-1 border rounded px-2 py-1 text-sm w-full transition duration-200 focus:ring-2 focus:ring-blue-500">
+                    <select name="status" class="mt-1 border border-gray-300 rounded px-2 py-1 text-sm w-full transition duration-150 focus:ring-2 focus:ring-blue-500">
                       <option value="pending" <?= $status === 'pending' ? 'selected' : '' ?>>Pending</option>
                       <option value="diproses" <?= $status === 'diproses' ? 'selected' : '' ?>>Diproses</option>
                       <option value="selesai" <?= $status === 'selesai' ? 'selected' : '' ?>>Selesai</option>

@@ -30,31 +30,52 @@ if ($nomorTerakhir) {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Nomor Pesanan</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+  </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center px-4">
+<body class="bg-gradient-to-br from-blue-100 via-white to-green-100 min-h-screen flex items-center justify-center px-4 py-10">
 
-  <div class="bg-white shadow-md rounded-lg p-8 max-w-md w-full text-center">
-    <h1 class="text-3xl font-bold text-blue-600 mb-4">🎉 Terima kasih!</h1>
-    <p class="text-gray-700 text-lg mb-2">Pesanan kamu berhasil dicatat.</p>
-    
-    <div class="bg-blue-100 text-blue-800 font-semibold py-2 px-4 rounded text-xl mb-3">
-      Nomor Pesanan: <span class="text-blue-600"><?= htmlspecialchars($nomorTerakhir) ?></span>
-    </div>
-    
-    <div class="bg-yellow-100 text-yellow-800 font-semibold py-2 px-4 rounded text-lg mb-3">
-      Status Pesanan: <span class="font-bold"><?= htmlspecialchars(ucfirst($status)) ?></span>
+  <div class="bg-white shadow-xl rounded-xl p-8 max-w-md w-full text-center border border-gray-200">
+    <div class="mb-4">
+      <div class="text-4xl mb-2">🎉</div>
+      <h1 class="text-3xl font-bold text-blue-700">Terima kasih!</h1>
+      <p class="text-gray-600 mt-2">Pesanan kamu berhasil dicatat.</p>
     </div>
 
-    <div class="bg-green-100 text-green-800 font-semibold py-2 px-4 rounded text-lg mb-4">
-      Total Bayar: <span class="font-bold">Rp<?= number_format($harga_total, 0, ',', '.') ?></span>
-      <p class="text-gray-700 text-sm">Lakukan pembayaran ketika mengambil pesanan</p>
+    <div class="text-left space-y-3 mt-6">
+      <div class="bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
+        <p class="text-sm text-gray-500">Nomor Pesanan</p>
+        <p class="text-xl font-bold text-blue-700"><?= htmlspecialchars($nomorTerakhir) ?></p>
+      </div>
+
+      <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
+        <p class="text-sm text-gray-500">Status</p>
+        <p class="text-lg font-semibold text-yellow-700"><?= htmlspecialchars(ucfirst($status)) ?></p>
+      </div>
+
+      <div class="bg-green-50 border-l-4 border-green-500 p-3 rounded">
+        <p class="text-sm text-gray-500">Total Bayar</p>
+        <p class="text-lg font-semibold text-green-700">Rp<?= number_format($harga_total, 0, ',', '.') ?></p>
+        <p class="text-xs text-gray-500 mt-1">* Bayar saat pengambilan</p>
+      </div>
     </div>
 
-    <p class="text-gray-700 text-lg mb-2">Ditunggu ya 🤗</p>
-    <a href="customer.php" class="inline-block mt-6 text-blue-500 hover:underline">
-      ← Kembali ke Form
-    </a>
+    <div class="mt-6">
+      <a href="cetak_struk.php?nomor_pesanan=<?= $nomorTerakhir ?>" target="_blank" class="inline-flex items-center gap-2 px-5 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition">
+        🧾 <span>Cetak Bukti Transaksi</span>
+      </a>
+    </div>
+
+    <div class="mt-6">
+      <p class="text-gray-600 text-sm">Ditunggu ya 🤗</p>
+      <a href="customer.php" class="mt-2 inline-block text-blue-500 hover:underline text-sm">
+        ← Kembali ke Form
+      </a>
+    </div>
   </div>
 
 </body>
 </html>
+
