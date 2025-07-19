@@ -106,12 +106,20 @@ $result = mysqli_query($conn, "SELECT * FROM customer ORDER BY waktu_pesanan_mas
                 <td class="px-5 py-3"><?= $row['jumlah'] ?></td>
                 <td class="px-5 py-3"><?= htmlspecialchars($row['deskripsi']) ?></td>
                 <td class="px-5 py-3">
-                  <?php if (!empty($row['file'])): ?>
-                    <a href="uploads/<?= $row['file'] ?>" target="_blank" class="text-blue-600 underline hover:text-blue-800 transition">Lihat File</a>
-                  <?php else: ?>
-                    <span class="text-gray-400 italic">Belum ada</span>
-                  <?php endif; ?>
+                  <?php
+                    if (!empty($row['file'])) {
+                      $paths = explode(',', $row['file']);
+                      foreach ($paths as $filePath) {
+                        $safePath = htmlspecialchars($filePath);
+                        $fileName = basename($safePath);
+                        echo "<a href='uploads/$safePath' target='_blank' class='block text-blue-600 underline hover:text-blue-800 transition mb-1'>📄 $fileName</a>";
+                      }
+                    } else {
+                      echo "<span class='text-gray-400 italic'>Belum ada</span>";
+                    }
+                  ?>
                 </td>
+
                 <td class="px-5 py-3 text-green-700">Rp<?= number_format($row['harga_total'], 0, ',', '.') ?></td>
                 <td class="px-5 py-3">
                   <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold <?= $badgeColor ?>">
