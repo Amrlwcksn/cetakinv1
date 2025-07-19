@@ -20,10 +20,10 @@ if ($_SERVER['REQUEST_METHOD'] === "POST" && isset($_POST['login'])){
             header("Location: admin.php");
             exit;
         }else {
-            echo "<script>alert('Password salah!'); window.location.href='index.php';</script>";
+            echo "<script>alert('Password salah!'); window.location.href='login.php';</script>";
         }
     }else {
-        echo "<script>alert('Username tidak ditemukan!'); window.location.href='index.php';</script>";
+        echo "<script>alert('Username tidak ditemukan!'); window.location.href='login.php';</script>";
     }
 }
 ?>
