@@ -2,7 +2,7 @@
 
 // TODO (Login with haashing)
 session_start();
-$conn = mysqli_connect("localhost","root","200201","cetakin");
+$conn = mysqli_connect("localhost","root","CetakIn200201!","cetakin");
 
 
 if ($_SERVER['REQUEST_METHOD'] === "POST" && isset($_POST['login'])){

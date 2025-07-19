@@ -1,6 +1,6 @@
 <?php
 session_start();
-$conn = mysqli_connect("localhost", "root", "200201", "cetakin");
+$conn = mysqli_connect("localhost", "root", "CetakIn200201!", "cetakin");
 
 // ======== REGISTER USER ========
 if ($_SERVER['REQUEST_METHOD'] === "POST" && isset($_POST['register'])) {
